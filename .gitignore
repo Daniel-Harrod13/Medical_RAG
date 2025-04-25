@@ -1,0 +1,18 @@
+# Large Language Model Files
+*.gguf
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS-generated files
+.DS_Store
+
+# IDE configuration files
+.vscode/
+.idea/
+
+# Add any other logs or local config files if needed
+# *.log 

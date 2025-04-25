@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Banking Chatbot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa; /* Lighter background for contrast */
+            font-family: 'Poppins', sans-serif;
+            color: #212529; /* Darker text for readability */
+            padding-top: 30px; /* Add some padding at the top */
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 30px;
+            background-color: #ffffff; /* White background for the main container */
+            border-radius: 15px; /* Slightly more rounded corners */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+            border: 1px solid #dee2e6; /* Light border */
+        }
+        .chat-heading {
+            text-align: center;
+            font-size: 2.2em; /* Slightly adjust size */
+            font-weight: 600;
+            margin-bottom: 35px;
+            color: #0d6efd; /* Royal Blue */
+        }
+        .chat-input {
+            margin-top: 20px;
+            margin-bottom: 15px; /* Adjust spacing */
+            height: 120px; /* Slightly taller */
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            padding: 15px;
+        }
+        .chat-button {
+            background-color: #0d6efd; /* Royal Blue */
+            border: none; /* Remove default border */
+            color: white;
+            padding: 12px 25px; /* Adjust padding */
+            font-size: 1.1em; /* Adjust font size */
+            border-radius: 8px;
+            transition: background-color 0.3s ease; /* Smooth hover effect */
+        }
+        .chat-button:hover {
+            background-color: #0b5ed7; /* Darker blue on hover */
+        }
+        .chat-response {
+            background-color: #e9ecef; /* Light grey background for response */
+            color: #343a40; /* Darker text for response */
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 120px;
+            margin-top: 25px;
+            border: 1px solid #ced4da;
+            overflow-wrap: break-word; /* Ensure long words wrap */
+        }
+        .accordion {
+            margin-top: 25px;
+            background-color: transparent; /* Make accordion background transparent */
+            border-radius: 8px;
+            border: 1px solid #dee2e6; /* Add border */
+        }
+        .accordion-item {
+            border: none; /* Remove default item border */
+            background-color: #ffffff; /* White background */
+        }
+        .accordion-header {
+             border-bottom: 1px solid #dee2e6; /* Separator line */
+        }
+        .accordion-button {
+            color: #0d6efd; /* Royal Blue */
+            background-color: #ffffff; /* White background */
+            font-weight: 600;
+            border-radius: 8px 8px 0 0; /* Match container radius */
+            box-shadow: none !important; /* Remove default bootstrap shadow */
+        }
+        .accordion-button:not(.collapsed) {
+             color: #0b5ed7; /* Darker blue when expanded */
+             background-color: #f8f9fa; /* Slightly different bg when expanded */
+        }
+        .accordion-body {
+            color: #495057; /* Slightly lighter text for body */
+            background-color: #ffffff;
+            padding: 20px;
+        }
+        pre {
+            white-space: pre-wrap; /* Keep wrapping */
+            background-color: #f8f9fa; /* Light background for code/context blocks */
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            color: #212529;
+            font-size: 0.9em;
+        }
+        b {
+           color: #0d6efd; /* Blue for emphasis */
+        }
+    </style>
+</head>
+<body>
+    <div class="container chat-container">
+        <h1 class="chat-heading">Cancer Research Chatbot</h1>
+
+        <div class="accordion" id="appDescriptionAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="descriptionHeading">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDescription" aria-expanded="false" aria-controls="collapseDescription">
+                        About This App
+                    </button>
+                </h2>
+                <div id="collapseDescription" class="accordion-collapse collapse" aria-labelledby="descriptionHeading" data-bs-parent="#appDescriptionAccordion">
+                    <div class="accordion-body">
+                        This is a RAG implementation using an Open Source stack. Meditron 7B has been used to build this app along with Microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract as an embedding model, Qdrant as a vector database, and Langchain & CTransformers as orchestration frameworks.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4"> <!-- Added margin-top -->
+            <div class="col">
+                <textarea id="userInput" class="form-control chat-input" placeholder="Ask a question about the provided medical oncology handbook..."></textarea>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end"> <!-- Button alignment -->
+                     <button id="submitBtn" class="btn chat-button">Submit Query</button>
+                </div>
+                <div id="response" class="chat-response mt-3">Response will appear here...</div> <!-- Added margin-top -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('submitBtn').addEventListener('click', async function() {
+            var userInput = document.getElementById('userInput').value;
+            var responseDiv = document.getElementById('response');
+            responseDiv.innerHTML = '<div class="d-flex justify-content-center align-items-center" style="min-height: 100px;"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>'; // Bootstrap spinner
+
+            const formData = new FormData();
+            formData.append('query', userInput); 
+            try {
+                const response = await fetch('/get_response', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    // Try to get error message from response body
+                    let errorText = 'Network response was not ok';
+                    try {
+                         const errorData = await response.json();
+                         errorText = errorData.detail || JSON.stringify(errorData);
+                    } catch (e) {
+                         // Ignore if response body is not JSON or empty
+                    }
+                    throw new Error(errorText);
+                }
+
+                // Need to parse the doubly encoded JSON
+                const rawData = await response.json(); 
+                const data = JSON.parse(rawData); // Parse the inner JSON string
+
+                responseDiv.innerHTML = `<p>${data.answer}</p><hr><pre><b>Context:</b>\n${data.source_document}</pre><hr><p><b>Source Document:</b> ${data.doc}</p>`;
+            } catch (error) {
+                console.error('Error:', error);
+                responseDiv.innerHTML = `<p class="text-danger">Error processing your request: ${error.message}</p>`;
+            }
+        });
+
+    </script>
+</body>
+</html>
